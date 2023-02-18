@@ -56,7 +56,7 @@ class CocoDataset(Dataset):
 
 def download_dataset():
     if not os.path.isdir(dataset_root):
-        rf = Roboflow(api_key="HGKjm1s8DncqgYUCOPeC")
+        rf = Roboflow(api_key="rf_SS1TSoivnwRHQAMXcXt3ShNcc5x1")
         project = rf.workspace("untitled-project-obum0").project("proj-f")
         project.version(25).download("coco")
 
