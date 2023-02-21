@@ -53,6 +53,9 @@ class CocoDataset(Dataset):
         target = self.coco.loadAnns(ann_ids)
         return img, target
 
+    def categories(self):
+        return len(self.coco.cats)
+
 
 def download_dataset():
     if not os.path.isdir(dataset_root):

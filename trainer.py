@@ -1,5 +1,16 @@
 import tqdm
 import torch
+from sklearn.metrics import precision_recall_curve, auc, confusion_matrix
+from torchvision.ops import box_iou
+from torchmetrics.detection.mean_ap import MeanAveragePrecision
+
+
+def calc_map(boxes, targets, num_classes):
+    metric = MeanAveragePrecision()
+    res = metric(boxes,targets)
+    return float(res["map"])
+
+
 
 class trainer():
     def __init__(self, model, loader, train_size, valid_loader, valid_size, writer, device, sched_class, sched_params, optim_class, optim_params):
@@ -52,3 +63,21 @@ class trainer():
                 pbar.set_postfix({"loss":float(torch.mean(loss_res))})
         final_loss = float(torch.mean(loss_res))
         return (final_loss, True) if final_loss<=best_valid else (best_valid, False)
+
+
+    def test(self,test_loader,class_num):
+        self.model.eval()
+        pbar = tqdm.tqdm(enumerate(self.valid),f"test epoch",
+                        total=self.total_runs_valid)
+        mAP_per_batch = []
+        with torch.no_grad():
+            for i, (items,targets) in pbar:
+                items = [item.to(self.device) for item in items]
+                targets = [
+                    {'boxes': img_target['boxes'].to(self.device), 'labels': img_target['labels'].to(self.device) } 
+                    for img_target in targets]
+                boxes = self.model(items,targets)
+                mAP_per_batch.append(calc_map(boxes,targets,class_num))
+        return float(torch.mean(torch.tensor(mAP_per_batch)))
+
+
