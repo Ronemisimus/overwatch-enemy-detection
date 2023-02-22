@@ -41,8 +41,8 @@ class trainer():
             pbar.set_postfix({"loss":float(loss)})
             loss.backward()
             self.optimizer.step()
-            self.schedualer.step(*sched_params)
             self.optimizer.zero_grad()
+        self.schedualer.step(*sched_params)
 
     def validate_one_epoch(self,epoch, best_valid):
         self.model.train()
