@@ -115,8 +115,7 @@ def download_dataset():
         project = rf.workspace("justin-burger").project("goats-hqnax")
         dataset = project.version(5).download("coco")
         return dataset.name+"-"+dataset.version
-        """ project = rf.workspace("untitled-project-obum0").project("proj-f")
-        project.version(25).download("coco") """
+        
 
 def build_dataset(small:bool, scale):
     dataset_root = download_dataset()

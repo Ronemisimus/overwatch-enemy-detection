@@ -1,6 +1,6 @@
 from torch.utils.tensorboard import SummaryWriter
 from dataHandler import build_dataset, get_dataLoader
-from model import get_model
+from model import get_model, unfreeze_layer
 from trainer import trainer
 from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, MultiStepLR
 from torch.optim import Adam, SGD
@@ -16,7 +16,7 @@ class DummySummaryWriter:
         return self
 
 
-model_file= 'models/classes4_frozen_up_to_backbone.features.1_goat.pkl'
+model_file= 'models/classes4_gradual_unfreeze_goat.pkl'
 
 def main():
     # train parameters
@@ -24,6 +24,7 @@ def main():
     save_model = True
     validate = True
     save_log = True
+    transfer_learning = True
     # data parameters
     batch_size = 32
     small_dataset = False
@@ -33,17 +34,18 @@ def main():
     if save_model and os.path.isfile(model_file):
         model, best_valid = torch.load(model_file)
     else:
-        model, best_valid = get_model(), 20
+        model, best_valid = get_model(transfer_learning), 20
 
     # hyper parameters
-    epoch_num = 40
-    lr = 1e-4
+    epoch_num = 150
+    unfreeze_every = 2
+    lr = 1e-3
     optimizer_class = Adam
     optim_params = {
         "params":model.parameters(),
         "lr":lr,
         "betas":(0.9, 0.999),
-        "eps":1e-8,
+        "eps":1e-3,
         "weight_decay":5e-4,
         "amsgrad":False,
         "foreach":None,
@@ -53,7 +55,7 @@ def main():
     }
     schedualer_class = MultiStepLR
     sched_params = {
-        "milestones":[20,30],
+        "milestones":[40,80,120],
         "gamma":0.1,
         "last_epoch":-1,
         "verbose":True
@@ -79,6 +81,7 @@ def main():
 
     # check initial state of the model
     epoch = 0
+    unfreeze_counter = 0
     if validate:    
         best_valid, save_flag = trainer_obj.validate_one_epoch(epoch, best_valid)
     # train model
@@ -89,6 +92,13 @@ def main():
             if save_model and save_flag:
                 print("saving model with avg loss", best_valid)
                 torch.save((model,best_valid),model_file)
+        if transfer_learning:
+            unfreeze_counter += 1
+            if unfreeze_counter == unfreeze_every:
+                unfreeze_layer(model)
+                unfreeze_counter = 0
+                
+
     
     if save_model and os.path.isfile(model_file):
         model, best_valid = torch.load(model_file)

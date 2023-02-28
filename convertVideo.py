@@ -11,11 +11,11 @@ import SSDTransfoms as ssd_tfms
 
 video_path = "/home/ronen/Videos/taking my goat on a hike and hoping she doesn't headbutt children.mp4"
 video_path_out = "/home/ronen/Videos/Goat-detection-res.mp4"
-model_path = "models/classes4_frozen_up_to_backbone.features.1_goat.pkl"
+model_path = "models/classes4_gradual_unfreeze_goat.pkl"
 
 label_dict = ["none","chicken", "gaurd dog", "goat"]
 color_dict = [color for color in zip(range(3,255,63),[0]*4,range(255,3,-63))]
-confedense = 0.55
+confedense = 0.5
 nms_threshold = 0.4
 show = False
 frames_with_enemy = 0
